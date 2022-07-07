@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 
-from app.utils import FileUploadHandler, get_saved_filenames, get_saved_filepath
+from app.utils import FileUploadHandler, CryptoHandler, get_saved_filenames, get_saved_filepath, delete_saved_file
 from app.models.responses import FileUploadResponse
 
 
@@ -15,14 +15,26 @@ not_found_exception = HTTPException(status_code=404, detail="File not found")
 
 @router.post("/", response_model=FileUploadResponse)
 def upload_file(file: UploadFile):
-    handler = FileUploadHandler(file)
-    handler.save_file()
-    return JSONResponse({"publicKey": handler.public_key, "privateKey": handler.private_key})
+    file_upload_handler = FileUploadHandler(file)
+    file_upload_handler.save_file()
+    return JSONResponse({"publicKey": file_upload_handler.public_key, "privateKey": file_upload_handler.private_key})
 
 
 @router.delete("/{private_key}")
-def delete_file():
-    pass
+def delete_file(private_key: str):
+    if len(private_key) != 64:
+        return not_found_exception
+
+    crypto_handler = CryptoHandler()
+    saved_filenames = get_saved_filenames()
+    for filename in saved_filenames:
+        public_key = filename[:64]
+        file_private_key = crypto_handler.calculate_private_key(public_key)
+        if file_private_key == private_key:
+            delete_saved_file(filename)
+            return JSONResponse({"detail": "Delete successful"}, status_code=200)
+
+    return not_found_exception
 
 
 @router.get("/{public_key}")
