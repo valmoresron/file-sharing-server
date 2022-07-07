@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile
 from fastapi.responses import JSONResponse
 
 from app.common import settings
@@ -12,8 +12,8 @@ router = APIRouter(
 
 
 @router.post("/", response_model=FileUploadResponse)
-def upload_file():
-    return "test"
+def upload_file(file: UploadFile):
+    pass
 
 
 @router.delete("/{private_key}")
