@@ -1,7 +1,6 @@
 from fastapi import APIRouter
-from app.settings import Settings
+from app.common import settings
 
-settings = Settings()
 
 router = APIRouter(
     prefix="/file",
@@ -20,5 +19,5 @@ def delete_file():
 
 
 @router.get("/{public_key}")
-def get_file():
-    return settings.secret_key
+def get_file(public_key: str):
+    return {"secret_key": settings.secret_key, "public_key": public_key}
