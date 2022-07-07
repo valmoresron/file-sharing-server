@@ -1,16 +1,17 @@
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+
 from app.common import settings
 
-
 router = APIRouter(
-    prefix="/file",
-    tags=["file"],
+    prefix="/files",
+    tags=["Files"],
 )
 
 
-@router.post("/")
+@router.post("/", response_class=JSONResponse)
 def upload_file():
-    pass
+    return "test"
 
 
 @router.delete("/{private_key}")
@@ -20,4 +21,4 @@ def delete_file():
 
 @router.get("/{public_key}")
 def get_file(public_key: str):
-    return {"secret_key": settings.secret_key, "public_key": public_key}
+    return JSONResponse({"secret_key": settings.secret_key, "public_key": public_key})

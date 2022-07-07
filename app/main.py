@@ -7,7 +7,7 @@ from app.routers import files
 app = FastAPI()
 
 
-@app.get("/")
+@app.get("/", tags=["Defaults"], description="Redirects to docs")
 def home():
     docs_url = "/docs"
     return RedirectResponse(url=docs_url)
