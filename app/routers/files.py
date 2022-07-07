@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from app.common import settings
 from app.models.responses import FileUploadResponse
+from app.utils import FileUploadHandler
 
 
 router = APIRouter(
@@ -13,7 +14,9 @@ router = APIRouter(
 
 @router.post("/", response_model=FileUploadResponse)
 def upload_file(file: UploadFile):
-    pass
+    handler = FileUploadHandler(file)
+    handler.save_file()
+    return JSONResponse({"publicKey": handler.public_key, "privateKey": handler.private_key})
 
 
 @router.delete("/{private_key}")
