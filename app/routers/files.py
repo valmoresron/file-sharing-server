@@ -2,6 +2,8 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from app.common import settings
+from app.models.responses import FileUploadResponse
+
 
 router = APIRouter(
     prefix="/files",
@@ -9,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_class=JSONResponse)
+@router.post("/", response_model=FileUploadResponse)
 def upload_file():
     return "test"
 
