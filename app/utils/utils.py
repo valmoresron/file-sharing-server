@@ -63,15 +63,40 @@ class FileUploadHandler:
             f.write(self.file_contents)
 
 
-def get_saved_filenames() -> list[str]:
-    filenames = [f for f in os.listdir(savepath) if os.path.isfile(os.path.join(savepath, f))]
-    return filenames
+class SavedFilesHandler:
+    crypto_handler: CryptoHandler
 
+    def __init__(self) -> None:
+        self.crypto_handler = CryptoHandler()
 
-def get_saved_filepath(saved_filename: str) -> str:
-    return os.path.join(savepath, saved_filename)
+    def get_saved_filenames(self) -> str:
+        filenames = [f for f in os.listdir(savepath) if os.path.isfile(os.path.join(savepath, f))]
+        return filenames
 
-def delete_saved_file(filename: str):
-    filepath = os.path.join(savepath, filename)
-    if os.path.exists(filepath):
-        os.remove(filepath)
+    def get_filepath_using_public_key(self, public_key) -> str:
+        saved_filenames = self.get_saved_filenames()
+        for filename in saved_filenames:
+            file_public_key = filename[:64]
+            if public_key == file_public_key:
+                return os.path.join(savepath, filename)
+
+        return ""
+
+    def get_filename_using_private_key(self, private_key) -> str:
+        saved_filenames = self.get_saved_filenames()
+        for filename in saved_filenames:
+            file_public_key = filename[:64]
+            file_private_key = self.crypto_handler.calculate_private_key(file_public_key)
+            if private_key == file_private_key:
+                return filename
+
+        return ""
+
+    def get_original_filename(self, filepath: str) -> str:
+        filename = filepath.split("/")[-1][64:]
+        return filename
+
+    def delete_saved_file(self, filename: str):
+        filepath = os.path.join(savepath, filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)

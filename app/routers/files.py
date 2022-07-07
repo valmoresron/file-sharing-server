@@ -1,7 +1,8 @@
+from fileinput import filename
 from fastapi import APIRouter, UploadFile, HTTPException, status
 from fastapi.responses import JSONResponse, FileResponse, Response
 
-from app.utils import FileUploadHandler, CryptoHandler, get_saved_filenames, get_saved_filepath, delete_saved_file
+from app.utils import FileUploadHandler, SavedFilesHandler
 from app.models.responses import FileUploadResponse
 
 
@@ -26,31 +27,27 @@ def delete_file(private_key: str, response: Response):
         response.status_code = status.HTTP_404_NOT_FOUND
         return not_found_exception
 
-    crypto_handler = CryptoHandler()
-    saved_filenames = get_saved_filenames()
-    for filename in saved_filenames:
-        public_key = filename[:64]
-        file_private_key = crypto_handler.calculate_private_key(public_key)
-        if file_private_key == private_key:
-            delete_saved_file(filename)
-            return JSONResponse({"detail": "Delete successful"})
+    saved_files_handler = SavedFilesHandler()
+    filename = saved_files_handler.get_filename_using_private_key(private_key)
+    if filename:
+        saved_files_handler.delete_saved_file(filename)
+        return JSONResponse({"detail": "Delete successful"})
 
     response.status_code = status.HTTP_404_NOT_FOUND
     return not_found_exception
 
 
-@router.get("/{public_key}")
+@router.get("/{public_key}", response_class=FileResponse)
 def get_file(public_key: str, response: Response):
     if len(public_key) != 64:
         response.status_code = status.HTTP_404_NOT_FOUND
         return not_found_exception
 
-    saved_filenames = get_saved_filenames()
-    for filename in saved_filenames:
-        if filename.startswith(public_key):
-            saved_filepath = get_saved_filepath(filename)
-            original_filename = filename.replace(public_key, "")
-            return FileResponse(saved_filepath, filename=original_filename)
+    saved_files_handler = SavedFilesHandler()
+    filepath = saved_files_handler.get_filepath_using_public_key(public_key)
+    if filepath:
+        filename = saved_files_handler.get_original_filename(filepath)
+        return FileResponse(filepath, filename=filename)
 
     response.status_code = status.HTTP_404_NOT_FOUND
     return not_found_exception
