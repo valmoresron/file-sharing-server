@@ -4,7 +4,9 @@ from fastapi import UploadFile
 from app.common import settings
 
 secret_key = settings.secret_key
-filespath = "./files"  # TODO Add in .env
+savepath = "./files"  # TODO Add in .env
+
+os.makedirs(savepath, exist_ok=True)
 
 
 class FileUploadHandler:
@@ -38,13 +40,19 @@ class FileUploadHandler:
                 digestmod=digestmod,
             ).hexdigest()
             self.private_key = private_key
-    
+
     def save_file(self):
-        os.makedirs(filespath, exist_ok=True)
         uploaded_filename = self.file.filename
         save_filename = self.public_key + uploaded_filename
-        save_filepath = os.path.join(filespath, save_filename)
+        save_filepath = os.path.join(savepath, save_filename)
 
-        with open(save_filepath, 'wb') as f:
+        with open(save_filepath, "wb") as f:
             f.write(self.file_contents)
 
+
+def get_saved_filenames() -> list[str]:
+    filenames = [f for f in os.listdir(savepath) if os.path.isfile(os.path.join(savepath, f))]
+    return filenames
+
+def get_saved_filepath(saved_filename: str) -> str:
+    return os.path.join(savepath, saved_filename)
