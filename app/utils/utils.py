@@ -3,8 +3,8 @@ import os, hashlib, hmac
 from fastapi import UploadFile
 from app.common import settings
 
-secret_key = settings.secret_key
-savepath = "./files"  # TODO Add in .env
+secret_key = settings.SECRET_KEY
+savepath = str(settings.FOLDER)
 
 os.makedirs(savepath, exist_ok=True)
 
