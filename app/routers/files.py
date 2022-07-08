@@ -37,7 +37,7 @@ def delete_file(private_key: str, response: Response):
     return not_found_exception
 
 
-@router.get("/{public_key}", response_class=FileResponse)
+@router.get("/{public_key}")
 def get_file(public_key: str, response: Response):
     if len(public_key) != 64:
         response.status_code = status.HTTP_404_NOT_FOUND
