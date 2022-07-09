@@ -1,4 +1,4 @@
-import os, hashlib, hmac
+import os, hashlib, hmac, time
 
 from fastapi import UploadFile
 from app.common import settings
@@ -100,3 +100,26 @@ class SavedFilesHandler:
         filepath = os.path.join(savepath, filename)
         if os.path.exists(filepath):
             os.remove(filepath)
+
+
+LAST_ACTIVITY: float = time.time()
+
+
+class ActivityHandler:
+    @staticmethod
+    def get_last_activity() -> float:
+        global LAST_ACTIVITY
+        return LAST_ACTIVITY
+
+    @staticmethod
+    def update_last_activity():
+        global LAST_ACTIVITY
+        LAST_ACTIVITY = time.time()
+
+    @staticmethod
+    def get_mins_from_last_activity() -> int:
+        global LAST_ACTIVITY
+        current_time = time.time()
+        time_diff = current_time - LAST_ACTIVITY
+        time_diff_mins = time_diff / 60
+        return int(time_diff_mins)
