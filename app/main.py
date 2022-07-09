@@ -23,6 +23,6 @@ app.include_router(files.router)
 def clean_up():
     last_activity_mins = ActivityHandler.get_mins_from_last_activity()
     saved_files_handler = SavedFilesHandler()
-    if last_activity_mins >= settings.CLEANUP_AFTER_MINS:
+    if last_activity_mins >= settings.CLEANUP_AFTER_MINS_INACTIVITY:
         ActivityHandler.update_last_activity()
         saved_files_handler.clean_up_files()

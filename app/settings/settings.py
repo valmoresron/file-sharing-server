@@ -10,4 +10,4 @@ class Settings(BaseSettings):
     FOLDER: Path
     HOST: str
     PORT: int
-    CLEANUP_AFTER_MINS: int
+    CLEANUP_AFTER_MINS_INACTIVITY: int
