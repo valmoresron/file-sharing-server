@@ -43,11 +43,14 @@ class Database:
             return False
 
     def __clear_hosts_if_outdated(self):
-        db = self.get_db()
+        db: dict = None
+        with open(self.path, "r") as f:
+            db = json.loads(f.read())
+
         current_date = datetime.datetime.now().date()
         if db["hosts_info"]["date_created"] != current_date:
-            hosts_info = self.__get_base_db_template_copy["hosts_info"]
-            hosts_info["date_created"] = current_date
+            hosts_info = self.__get_base_db_template_copy()["hosts_info"]
+            hosts_info["date_created"] = str(current_date)
             db["hosts_info"] = hosts_info
             self.set_db(db)
 
@@ -57,9 +60,9 @@ class Database:
         with open(self.path, "w+") as f:
             f.write(json.dumps(db))
 
-    def set_db(self, db):
+    def set_db(self, db: dict):
         with open(self.path, "w+") as f:
-            f.write(db)
+            f.write(json.dumps(db))
 
     def get_db(self) -> dict:
         is_db_valid = self.__check_if_valid()
