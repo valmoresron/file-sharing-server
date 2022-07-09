@@ -3,6 +3,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.utils import ActivityHandler
 
+
+# every time the /files subroute is hit, it will update the last activity to the current time
 class ActivityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         base_url = str(request.base_url)

@@ -7,8 +7,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.common import database, settings
 from app.utils import SavedFilesHandler
 
-
-class LimitsHandler(BaseHTTPMiddleware):
+# this middleware handles limits based on <DAILY_LIMIT_MB> environment variable
+# host is the IP of the client accessing the API
+class LimitsMiddleware(BaseHTTPMiddleware):
+    # access the database and return how much size the host had used for the current date
     def __get_host_used_size(self, host: str):
         db: dict = database.get_db()
         hosts: dict = db["hosts_info"]["hosts"]
@@ -18,6 +20,7 @@ class LimitsHandler(BaseHTTPMiddleware):
 
         return hosts[host]["used_size"]
 
+    # return how much size the host has remaining
     def __get_host_remaining_size(self, host):
         daily_limit_mb = settings.DAILY_LIMIT_MB
         daily_limit_bytes = daily_limit_mb * 1000 * 1000
@@ -25,6 +28,7 @@ class LimitsHandler(BaseHTTPMiddleware):
         used_size = self.__get_host_used_size(host)
         return daily_limit_bytes - used_size
 
+    # access the database and increment the host's use size
     def __increment_host_used_size(self, host: str, size: int):
         db: dict = database.get_db()
         hosts: dict = db["hosts_info"]["hosts"]
@@ -44,12 +48,16 @@ class LimitsHandler(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
 
-        host = request.client.host
+        # proceed if accessing /files api using GET and POST method
+
+        host = request.client.host  # client's ip address
         remaining_size = self.__get_host_remaining_size(host)
         remaining_size_mb = remaining_size / (1000 * 1000)
 
         if request.method == "POST":
-            upload_size = int(request.headers.get("content-length"))
+            upload_size = int(request.headers.get("content-length"))  # get upload size from request header
+
+            # if upload size is more than the client's remaining daily size, 403 error along with message
             if upload_size > remaining_size:
                 upload_size_mb = upload_size / (1000 * 1000)
                 message = f"Upload size is {round(upload_size_mb, 2)} MB. You only have {round(remaining_size_mb, 2)} MB remaining"
@@ -65,18 +73,19 @@ class LimitsHandler(BaseHTTPMiddleware):
                 pass
 
             if public_key:
+                # use the saved files handler to determine info about the file the client wants to download
                 saved_files_handler = SavedFilesHandler()
                 filepath = saved_files_handler.get_filepath_using_public_key(public_key)
-                if os.path.exists(filepath) and os.path.isfile(filepath):
-                    file_stat = os.stat(filepath)
-                    file_size = file_stat.st_size
+                filesize = saved_files_handler.get_file_size(filepath)
 
-                    if file_size > remaining_size:
-                        file_size_mb = file_size / (1000 * 1000)
-                        message = f"File size is {round(file_size_mb, 2)} MB. You only have {round(remaining_size_mb, 2)} MB remaining"
-                        return JSONResponse({"details": message}, status_code=status.HTTP_403_FORBIDDEN)
-                    else:
-                        self.__increment_host_used_size(host, file_size)
+                # if file size is more than the client's remaining daily size, 403 error along with message
+                if filesize > remaining_size:
+                    file_size_mb = filesize / (1000 * 1000)
+                    message = f"File size is {round(file_size_mb, 2)} MB. You only have {round(remaining_size_mb, 2)} MB remaining"
+                    return JSONResponse({"details": message}, status_code=status.HTTP_403_FORBIDDEN)
+                else:
+                    self.__increment_host_used_size(host, filesize)
 
+        # if everything works fine, pass along the response to the next middleware or to the route function
         response = await call_next(request)
         return response
