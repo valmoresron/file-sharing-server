@@ -1,7 +1,11 @@
+import os
+
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.common import database, settings
+from app.utils import SavedFilesHandler
 
 
 class LimitsHandler(BaseHTTPMiddleware):
@@ -26,7 +30,7 @@ class LimitsHandler(BaseHTTPMiddleware):
         hosts: dict = db["hosts_info"]["hosts"]
 
         if not hosts.get(host):
-            hosts[host] = { "used_size": 0 }
+            hosts[host] = {"used_size": 0}
 
         hosts[host]["used_size"] += size
         database.set_db(db)
@@ -46,12 +50,33 @@ class LimitsHandler(BaseHTTPMiddleware):
 
         if request.method == "POST":
             upload_size = int(request.headers.get("content-length"))
-            upload_size_mb = upload_size / (1000 * 1000)
             if upload_size > remaining_size:
-                message = f"Uploaded size is {round(upload_size_mb, 2)} MB. You only have {round(remaining_size_mb, 2)} MB remaining"
+                upload_size_mb = upload_size / (1000 * 1000)
+                message = f"Upload size is {round(upload_size_mb, 2)} MB. You only have {round(remaining_size_mb, 2)} MB remaining"
                 return JSONResponse({"details": message}, status_code=status.HTTP_403_FORBIDDEN)
             else:
                 self.__increment_host_used_size(host, upload_size)
+
+        if request.method == "GET":
+            public_key = ""
+            try:
+                public_key = url.replace(base_url, "").split("/")[1]
+            except:
+                pass
+
+            if public_key:
+                saved_files_handler = SavedFilesHandler()
+                filepath = saved_files_handler.get_filepath_using_public_key(public_key)
+                if os.path.exists(filepath) and os.path.isfile(filepath):
+                    file_stat = os.stat(filepath)
+                    file_size = file_stat.st_size
+
+                    if file_size > remaining_size:
+                        file_size_mb = file_size / (1000 * 1000)
+                        message = f"File size is {round(file_size_mb, 2)} MB. You only have {round(remaining_size_mb, 2)} MB remaining"
+                        return JSONResponse({"details": message}, status_code=status.HTTP_403_FORBIDDEN)
+                    else:
+                        self.__increment_host_used_size(host, file_size)
 
         response = await call_next(request)
         return response
