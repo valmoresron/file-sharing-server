@@ -1,22 +1,16 @@
 from fastapi import APIRouter, UploadFile, HTTPException, status
 from fastapi.responses import JSONResponse, FileResponse, Response
 
-from app.utils import FileUploadHandler, SavedFilesHandler, ActivityHandler
+from app.utils import FileUploadHandler, SavedFilesHandler
 from app.models.responses import FileUploadResponse
 
 
-router = APIRouter(
-    prefix="/files",
-    tags=["Files"],
-)
-
+router = APIRouter(prefix="/files", tags=["Files"])
 not_found_exception = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
 
 @router.post("/", response_model=FileUploadResponse)
 def upload_file(file: UploadFile):
-    ActivityHandler.update_last_activity()
-
     file_upload_handler = FileUploadHandler(file)
     file_upload_handler.save_file()
     return JSONResponse({"publicKey": file_upload_handler.public_key, "privateKey": file_upload_handler.private_key})
@@ -24,8 +18,6 @@ def upload_file(file: UploadFile):
 
 @router.delete("/{private_key}")
 def delete_file(private_key: str, response: Response):
-    ActivityHandler.update_last_activity()
-
     if len(private_key) != 64:
         response.status_code = status.HTTP_404_NOT_FOUND
         return not_found_exception
@@ -42,8 +34,6 @@ def delete_file(private_key: str, response: Response):
 
 @router.get("/{public_key}")
 def get_file(public_key: str, response: Response):
-    ActivityHandler.update_last_activity()
-
     if len(public_key) != 64:
         response.status_code = status.HTTP_404_NOT_FOUND
         return not_found_exception

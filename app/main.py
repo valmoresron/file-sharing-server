@@ -4,6 +4,7 @@ from fastapi_utils.tasks import repeat_every
 
 from app.routers import files
 from app.utils import ActivityHandler, SavedFilesHandler
+from app.middlewares import ActivityMiddleware
 from app.common import settings
 
 app = FastAPI()
@@ -16,6 +17,7 @@ def home():
 
 
 app.include_router(files.router)
+app.add_middleware(ActivityMiddleware)
 
 
 @app.on_event("startup")
