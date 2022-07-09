@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi_utils.tasks import repeat_every
 
 from app.routers import files
-from app.utils import ActivityHandler
+from app.utils import ActivityHandler, SavedFilesHandler
 from app.common import settings
 
 app = FastAPI()
@@ -22,6 +22,7 @@ app.include_router(files.router)
 @repeat_every(seconds=10)
 def clean_up():
     last_activity_mins = ActivityHandler.get_mins_from_last_activity()
+    saved_files_handler = SavedFilesHandler()
     if last_activity_mins >= settings.CLEANUP_AFTER_MINS:
         ActivityHandler.update_last_activity()
-        # TODO: Run cleanup here
+        saved_files_handler.clean_up_files()

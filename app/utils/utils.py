@@ -101,6 +101,11 @@ class SavedFilesHandler:
         if os.path.exists(filepath):
             os.remove(filepath)
 
+    def clean_up_files(self):
+        filenames = self.get_saved_filenames()
+        for filename in filenames:
+            self.delete_saved_file(filename)
+
 
 LAST_ACTIVITY: float = time.time()
 
