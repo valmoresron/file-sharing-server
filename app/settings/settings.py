@@ -10,4 +10,5 @@ class Settings(BaseSettings):
     FOLDER: Path
     HOST: str
     PORT: int
+    DAILY_LIMIT_MB: int
     CLEANUP_AFTER_MINS_INACTIVITY: int

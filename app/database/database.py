@@ -37,6 +37,7 @@ class Database:
 
             for host in db["hosts_info"]["hosts"].keys():
                 assert "used_size" in db["hosts_info"]["hosts"][host].keys()
+                assert type(db["hosts_info"]["hosts"][host]["used_size"]) is int
 
             return True
         except:
@@ -47,7 +48,7 @@ class Database:
         with open(self.path, "r") as f:
             db = json.loads(f.read())
 
-        current_date = datetime.datetime.now().date()
+        current_date = str(datetime.datetime.now().date())
         if db["hosts_info"]["date_created"] != current_date:
             hosts_info = self.__get_base_db_template_copy()["hosts_info"]
             hosts_info["date_created"] = str(current_date)
@@ -72,4 +73,5 @@ class Database:
         self.__clear_hosts_if_outdated()
 
         with open(self.path, "r") as f:
-            return json.loads(f.read())
+            db = json.loads(f.read())
+            return db

@@ -2,3 +2,4 @@
 /files/*
 /uploads/*
 db.json
+*__pycache__*
