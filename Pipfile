@@ -9,6 +9,8 @@ uvicorn = {extras = ["standard"], version = "*"}
 python-dotenv = "*"
 python-multipart = "*"
 fastapi-utils = "*"
+pytest = "*"
+requests = "*"
 
 [dev-packages]
 black = "*"

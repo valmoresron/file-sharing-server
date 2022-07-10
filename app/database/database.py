@@ -84,3 +84,9 @@ class Database:
         with open(self.path, "r") as f:
             db = json.loads(f.read())
             return db
+
+    # deletes the database file and creates a new one
+    def reset_database(self):
+        if os.path.exists(self.path) and os.path.isfile(self.path):
+            os.remove(self.path)
+            self.__initialize_db()
