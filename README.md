@@ -1,3 +1,7 @@
+# Introduction
+
+- This is a very simple file sharing server. It uses [FastAPI]("https://fastapi.tiangolo.com/") - a modern, fast (high-performance), web framework for building APIs with Python 3.6+
+
 # Requirements (Development)
 
 - [Python 3.10]("https://www.python.org/downloads/release/python-3100/")
